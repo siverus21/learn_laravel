@@ -6,26 +6,28 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
-        if (Schema::hasTable('posts')) return;
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
             $table->text('content');
             $table->string('image')->nullable();
             $table->integer('likes')->nullable();
-            $table->boolean('is_published')->default(true);
+            $table->boolean('is_published')->default(1);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreignId('category_id')
-                ->nullable()
-                ->constrained()
-                ->nullOnDelete();
+            $table->unsignedBigInteger('category_id');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('posts');
