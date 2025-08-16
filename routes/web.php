@@ -1,14 +1,12 @@
 <?php
 
-use App\Http\Controllers\PostController;
-use App\Http\Controllers\MainController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AboutController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Admin controllers
+use App\Http\Controllers\Admin\Post\IndexController as AdminPostIndexController;
 
 Route::group(['namespace' => 'App\Http\Controllers\Post'], function () {
     Route::get('/posts', 'IndexController')->name('post.index');
@@ -21,21 +19,30 @@ Route::group(['namespace' => 'App\Http\Controllers\Post'], function () {
     Route::delete('/posts/{post}', 'DestroyController')->name('post.delete');
 });
 
-Route::group(
-    ['namespace' => 'App\Http\Controllers\Admin', 'prefix' => 'admin'],
-    function () {
+// Главная
+Route::get('/', [HomeController::class, 'index']);
 
-        Route::group(['namespace' => 'Post'], function () {
-            Route::get('/post', 'IndexController')->name('admin.post.index');
-        });
-    }
-);
+// Route::middleware('auth', 'admin')->group([
+//     'prefix' => 'admin',
+//     'namespace' => 'App\Http\Controllers\Admin',
+// ], function () {
+//     Route::group(['namespace' => 'Post'], function () {
+//         Route::get('/post', 'IndexController')
+//             ->name('admin.post.index');
+//     });
+// });
 
+Route::middleware([\App\Http\Middleware\AdminPanelMiddleware::class])
+    ->prefix('admin')
+    ->group(function () {
+        Route::get('/post', [\App\Http\Controllers\Admin\Post\IndexController::class, 'index'])
+            ->name('admin.post.index');
+    });
 
-// Route::get('/posts/update', [PostController::class, 'update']);
-// Route::get('/posts/delete', [PostController::class, 'delete']);
-// Route::get('/posts/first_or_create', [PostController::class, 'firstOrCreate']);
-// Route::get('/posts/update_or_create', [PostController::class, 'updateOrCreate']);
 
 Route::get('/contact', [ContactController::class, 'index'])->name('contact.index');
 Route::get('/about', [AboutController::class, 'index'])->name('about.index');
+
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
